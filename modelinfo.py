@@ -70,7 +70,12 @@ class Button:
 	def __repr__(self): return self.__str__()
 
 class ModelInfo:
-	def __init__(self, csr_mask = 2, hardware_id = 3, real_hardware = True, pd_value = 0, buttons = [], sprites = {}, ink_color = None, interface_path = '', model_name = '', rom_path = '', flash_path = ''):
+	supported_versions = (48, 49, 50)
+
+	def __init__(self, csr_mask = 2, hardware_id = 3, real_hardware = True, pd_value = 0, buttons = [], sprites = {}, ink_color = None, interface_path = '', model_name = '', rom_path = '', flash_path = '',
+				enable_new_screen = False, is_sample_rom = False, legacy_ko = False
+		):
+		self.version = supported_versions[-1]
 		self.csr_mask = csr_mask
 		self.hardware_id = hardware_id
 		self.real_hardware = real_hardware
@@ -82,11 +87,17 @@ class ModelInfo:
 		self.model_name = model_name
 		self.rom_path = rom_path
 		self.flash_path = flash_path
+		self.enable_new_screen = enable_new_screen
+		self.is_sample_rom = is_sample_rom
+		self.legacy_ko = legacy_ko
 
 	@staticmethod
 	def from_file(f):
 		string = read_std_string(f).decode('gb2312')
-		if string != '\n\nGenshin Configuration file v48\n\n原神配置文件v48\n\n': raise RuntimeError('Binary config file is not Genshin configuration file v48')
+		version = None
+		for v in self.supported_versions:
+			if string != f'\n\nGenshin Configuration file v{version}\n\n原神配置文件{version}\n\n': raise RuntimeError('Binary config file is not Genshin configuration file')
+			else: version = v
 
 		csr_mask = int.from_bytes(f.read(2), 'little')
 		hardware_id = int.from_bytes(f.read(2), 'little')
@@ -105,7 +116,17 @@ class ModelInfo:
 		rom_path = read_std_string(f).decode()
 		flash_path = read_std_string(f).decode()
 
-		return ModelInfo(csr_mask, hardware_id, real_hardware, pd_value, buttons, sprites, ink_color, interface_path, model_name, rom_path, flash_path)
+		enable_new_screen = False
+		is_sample_rom = False
+		legacy_ko = False
+
+		if version >= 49:
+			enable_new_screen = bool(f.read(1)[0])
+			is_sample_rom = bool(f.read(1)[0])
+
+		if version >= 50: legacy_ko = bool(f.read(1)[0])
+
+		return ModelInfo(csr_mask, hardware_id, real_hardware, pd_value, buttons, sprites, ink_color, interface_path, model_name, rom_path, flash_path, enable_new_screen, is_sample_rom, legacy_ko)
 
 	def __str__(self): return f'{self.__class__.__name__}({", ".join(k+"="+repr(v) for k, v in vars(self).items())})'
 	def __repr__(self): return self.__str__()

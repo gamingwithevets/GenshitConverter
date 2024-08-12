@@ -19,6 +19,12 @@ do
 		real_hardware = {int(a.real_hardware)},
 		csr_mask = 0x{a.csr_mask:x},
 		pd_value = 0x{a.pd_value:02x},
+		-- START v49+ SETTINGS
+		-- note: lua_config_convert does not support these settings
+		enable_new_screen = {int(a.enable_new_screen)},
+		is_sample_rom = {int(a.is_sample_rom)},
+		legacy_ko = {int(a.legacy_ko)},
+		-- END v49+ SETTINGS
 ''')
 		b = max([len(k) for k in a.sprites])
 		f.write('\n'.join([f'\t\t{k}{" "*(b-len(k))} = {{{v.src.x:4}, {v.src.y:4}, {v.src.w:4}, {v.src.h:4}, {v.dest.x:3}, {v.dest.y:3}}}, ' for k, v in a.sprites.items()]))
