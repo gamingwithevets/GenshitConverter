@@ -7,10 +7,11 @@ if __name__ == '__main__':
 		sys.exit()
 
 	with open(sys.argv[1], 'rb') as f: a = modelinfo.ModelInfo.from_file(f)
-	with open(sys.argv[2], 'w') as f:
+	with open(sys.argv[2], 'w', encoding = 'utf-8') as f:
 		f.write(f'''\
 --[[
 {a.header}
+Converted with GenshitConverter - https://github.com/gamingwithevets/GenshitConverter
 ]]
 do
 	emu:model({{

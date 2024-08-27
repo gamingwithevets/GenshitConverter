@@ -104,7 +104,9 @@ class ModelInfo:
 		version = None
 		try:
 			tmp = string.decode('gb2312')
-			if tmp == f'\n\nGenshin Configuration file v{v}\n\n原神配置文件{v}\n\n': version = v
+			if tmp == f'\n\nGenshin Configuration file v{v}\n\n原神配置文件{v}\n\n':
+				version = v
+				string = tmp
 		except UnicodeDecodeError: pass
 		try:
 			string = string.decode('utf-8')
