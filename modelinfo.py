@@ -73,12 +73,13 @@ class ModelInfo:
 	supported_versions = (49, 50)
 	supported_versions2 = (51,)
 
-	def __init__(self, version,
+	def __init__(self, version, header,
 				csr_mask = 2, hardware_id = 3, real_hardware = True, pd_value = 0, buttons = [], sprites = {}, ink_color = None, interface_path = '', model_name = '', rom_path = '', flash_path = '',
 				enable_new_screen = False, is_sample_rom = False, legacy_ko = False,
 				u16_mode = False, LARGE_model = True, ml620_mirroring = False,
 		):
 		self.version = version
+		self.header = header
 		self.csr_mask = csr_mask
 		self.hardware_id = hardware_id
 		self.real_hardware = real_hardware
@@ -151,7 +152,7 @@ class ModelInfo:
 			ml620_mirroring = bool(f.read(1)[0])
 
 		return ModelInfo(
-			version,
+			version, string,
 			csr_mask, hardware_id, real_hardware, pd_value, buttons, sprites, ink_color, interface_path, model_name, rom_path, flash_path,
 			enable_new_screen, is_sample_rom, legacy_ko,
 			u16_mode, LARGE_model, ml620_mirroring

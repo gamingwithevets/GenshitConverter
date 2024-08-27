@@ -9,7 +9,9 @@ if __name__ == '__main__':
 	with open(sys.argv[1], 'rb') as f: a = modelinfo.ModelInfo.from_file(f)
 	with open(sys.argv[2], 'w') as f:
 		f.write(f'''\
--- 
+--[[
+{a.header}
+]]
 do
 	emu:model({{
 		model_name = "{a.model_name}",
