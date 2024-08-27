@@ -70,12 +70,15 @@ class Button:
 	def __repr__(self): return self.__str__()
 
 class ModelInfo:
-	supported_versions = (48, 49, 50)
+	supported_versions = (49, 50)
+	supported_versions2 = (51,)
 
-	def __init__(self, csr_mask = 2, hardware_id = 3, real_hardware = True, pd_value = 0, buttons = [], sprites = {}, ink_color = None, interface_path = '', model_name = '', rom_path = '', flash_path = '',
-				enable_new_screen = False, is_sample_rom = False, legacy_ko = False
+	def __init__(self, version,
+				csr_mask = 2, hardware_id = 3, real_hardware = True, pd_value = 0, buttons = [], sprites = {}, ink_color = None, interface_path = '', model_name = '', rom_path = '', flash_path = '',
+				enable_new_screen = False, is_sample_rom = False, legacy_ko = False,
+				u16_mode = False, LARGE_model = True, ml620_mirroring = False,
 		):
-		self.version = supported_versions[-1]
+		self.version = version
 		self.csr_mask = csr_mask
 		self.hardware_id = hardware_id
 		self.real_hardware = real_hardware
@@ -90,14 +93,27 @@ class ModelInfo:
 		self.enable_new_screen = enable_new_screen
 		self.is_sample_rom = is_sample_rom
 		self.legacy_ko = legacy_ko
+		self.u16_mode = u16_mode
+		self.LARGE_model = LARGE_model
+		self.ml620_mirroring = ml620_mirroring
 
 	@staticmethod
 	def from_file(f):
-		string = read_std_string(f).decode('gb2312')
+		string = read_std_string(f)
 		version = None
-		for v in self.supported_versions:
-			if string != f'\n\nGenshin Configuration file v{version}\n\n原神配置文件{version}\n\n': raise RuntimeError('Binary config file is not Genshin configuration file')
-			else: version = v
+		try:
+			tmp = string.decode('gb2312')
+			if tmp == f'\n\nGenshin Configuration file v{v}\n\n原神配置文件{v}\n\n': version = v
+		except UnicodeDecodeError: pass
+		try:
+			string = string.decode('utf-8')
+			for v in ModelInfo.supported_versions:
+				if string == f'\n\nGenshin Configuration file v{v}\n\n原神配置文件v{v}\n\n': version = v
+			for v in ModelInfo.supported_versions2:
+				if string == f'\n\nnx-U16/U8 Emulator Configuration file v{v}\n\n模拟器配置文件v{v}\n\ntệp cấu hình giả lập v{v}\n\n': version = v
+		except UnicodeDecodeError: raise RuntimeError('Invalid binary config file')
+
+		if version is None: raise RuntimeError('Invalid binary config file')
 
 		csr_mask = int.from_bytes(f.read(2), 'little')
 		hardware_id = int.from_bytes(f.read(2), 'little')
@@ -119,6 +135,9 @@ class ModelInfo:
 		enable_new_screen = False
 		is_sample_rom = False
 		legacy_ko = False
+		u16_mode = False
+		LARGE_model = True
+		ml620_mirroring = False
 
 		if version >= 49:
 			enable_new_screen = bool(f.read(1)[0])
@@ -126,7 +145,17 @@ class ModelInfo:
 
 		if version >= 50: legacy_ko = bool(f.read(1)[0])
 
-		return ModelInfo(csr_mask, hardware_id, real_hardware, pd_value, buttons, sprites, ink_color, interface_path, model_name, rom_path, flash_path, enable_new_screen, is_sample_rom, legacy_ko)
+		if version >= 51:
+			u16_mode = bool(f.read(1)[0])
+			LARGE_model = bool(f.read(1)[0])
+			ml620_mirroring = bool(f.read(1)[0])
+
+		return ModelInfo(
+			version,
+			csr_mask, hardware_id, real_hardware, pd_value, buttons, sprites, ink_color, interface_path, model_name, rom_path, flash_path,
+			enable_new_screen, is_sample_rom, legacy_ko,
+			u16_mode, LARGE_model, ml620_mirroring
+			)
 
 	def __str__(self): return f'{self.__class__.__name__}({", ".join(k+"="+repr(v) for k, v in vars(self).items())})'
 	def __repr__(self): return self.__str__()
